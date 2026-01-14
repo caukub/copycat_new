@@ -1,0 +1,160 @@
+#[derive(Debug, PartialEq, Eq)]
+pub enum LogLevel {
+    Info,
+    Warn,
+    Error,
+    Custom,
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct LogEntry<'a> {
+    pub log_level: Option<LogLevel>,
+    pub prefix: Option<&'a str>,
+    pub message: &'a str,
+}
+pub struct Parser<'a> {
+    lines: &'a [&'a str],
+}
+
+impl<'a> Parser<'a> {
+    pub fn new(lines: &'a [&'a str]) -> Self {
+        Self { lines }
+    }
+
+    pub fn parse(&self) -> Vec<LogEntry<'a>> {
+        self.lines
+            .iter()
+            .map(|&line| {
+                let log_level = if line.contains("INFO") {
+                    Some(LogLevel::Info)
+                } else if line.contains("WARN") {
+                    Some(LogLevel::Warn)
+                } else if line.contains("ERROR") {
+                    Some(LogLevel::Error)
+                } else {
+                    None
+                };
+
+                LogEntry {
+                    log_level,
+                    prefix: None,
+                    message: line,
+                }
+            })
+            .collect()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use LogLevel::*;
+
+    fn get_entry_levels(log: &[&'static str]) -> Vec<Option<LogLevel>> {
+        let levels: Vec<Option<LogLevel>> = Parser::new(&log)
+            .parse()
+            .into_iter()
+            .map(|entry| entry.log_level)
+            .collect();
+
+        levels
+    }
+
+    #[test]
+    fn empty_log() {
+        assert!(get_entry_levels(&[]).is_empty());
+    }
+
+    #[test]
+    fn log_starts_with_unknown_level() {
+        let log = ["a", "b", "INFO] c", "d", "ERROR] e"];
+
+        let expected_levels = vec![None, None, Some(Info), Some(Info), Some(Error)];
+
+        assert_eq!(get_entry_levels(&log), expected_levels);
+    }
+
+    #[test]
+    fn log_starts_with_known_level() {
+        let log = ["INFO] a", "b", "c", "ERROR] d"];
+
+        let expected_levels = vec![Some(Info), Some(Info), Some(Info), Some(Error)];
+
+        assert_eq!(get_entry_levels(&log), expected_levels);
+    }
+
+    #[test]
+    fn log_ends_with_unknown_level() {
+        let log = ["INFO] a", "b", "ERROR] c", "d"];
+
+        let expected_levels = vec![Some(Info), Some(Info), Some(Error), Some(Error)];
+
+        assert_eq!(get_entry_levels(&log), expected_levels);
+    }
+
+    #[test]
+    fn log_ends_with_known_level() {
+        let log = ["INFO] a", "b", "ERROR] c", "WARN] d"];
+
+        let expected_levels = vec![Some(Info), Some(Info), Some(Error), Some(Warn)];
+
+        assert_eq!(get_entry_levels(&log), expected_levels);
+    }
+}
+
+pub struct Line(pub &'static str);
+
+impl Line {
+    fn log_level(&self) -> Option<LogLevel> {
+        if self.0.contains("INFO]") {
+            return Some(LogLevel::Info);
+        } else if self.0.contains("WARN]") {
+            return Some(LogLevel::Warn);
+        } else if self.0.contains("ERROR]") {
+            return Some(LogLevel::Error);
+        }
+        None
+    }
+
+    fn is_stacktrace_line(&self) -> bool {
+        let trimmed = self.0.trim_start();
+
+        !trimmed.is_empty() && trimmed.len() != self.0.len() && trimmed.starts_with("at ")
+    }
+}
+
+/// Is Stacktrace if `Line::log_level` returns `LogLevel::Error` ∧
+/// >= 3 following lines starts with `\s+at `
+/// Stacktrace ends with line starting with non-whitespace character
+/// Returns Vec of start and end indexes of stacktraces, starting from index 0
+pub fn get_stacktraces(lines: &[Line]) -> Vec<(usize, usize)> {
+    let mut stacktraces = vec![];
+
+    for (index, line) in lines.iter().enumerate() {
+        if line.log_level() == Some(LogLevel::Error) {
+            let mut i = 0;
+
+            loop {
+                let next_line = lines.get(index + i + 1);
+
+                if next_line.is_none() || next_line.is_some_and(|line| !line.is_stacktrace_line()) {
+                    break;
+                }
+                i += 1;
+            }
+
+            if i >= 3 {
+                let start_idx = index;
+                let end_idx = index + i;
+                stacktraces.push((start_idx, end_idx));
+            }
+        }
+    }
+    stacktraces
+}
+
+fn get_jars(line: String) -> Vec<(usize, usize)> {
+    let jars = vec![];
+
+    jars
+}

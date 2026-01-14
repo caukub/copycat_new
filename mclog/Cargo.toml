@@ -1,0 +1,5 @@
+[package]
+name = "mclog"
+version = "0.1.0"
+authors = ["caukub"]
+edition = "2024"
