@@ -12,7 +12,7 @@ use copycat::{
     routes::{index_handler, paste_handler, raw_handler, upload_handler},
     tracing::init_tracing,
 };
-use mclog::parser::{Line, Parser, get_stacktraces};
+use mclog::parser::{Parser};
 use tokio::signal;
 use tracing::{debug, error, trace};
 
@@ -20,35 +20,6 @@ const DATA_DIR: &str = "data";
 
 #[tokio::main]
 async fn main() {
-    let x: Vec<&'static str> = vec!["ERROR] in thread \"main\" java.lang.NullPointerException",
-            " at com.example.myproject.Book.getTitle(Book.java:16)",
-            "  at com.example.myproject.Author.getBookTitles(Author.java:25)",
-            " at com.example.myproject.Bootstrap.main(Bootstrap.java:14)",
-            " at com.example.myproject.Bootstrap.main(Bootstrap.java:14)",
-            " at in thread \"main\" java.lang.NullPointerException",
-            " at com.example.myproject.Book.getTitle(Book.java:16)",
-            "  at com.example.myproject.Author.getBookTitles(Author.java:25)",
-            " at com.example.myproject.Bootstrap.main(Bootstrap.java:14)",
-            "at com.example.myproject.Bootstrap.main(Bootstrap.java:14)","ERROR] in thread \"main\" java.lang.NullPointerException",
-            " at com.example.myproject.Book.getTitle(Book.java:16)",
-            "  at com.example.myproject.Author.getBookTitles(Author.java:25)",
-            " at com.example.myproject.Bootstrap.main(Bootstrap.java:14)",
-            "at com.example.myproject.Bootstrap.main(Bootstrap.java:14)",
-            " at in thread \"main\" java.lang.NullPointerException",
-            " at com.example.myproject.Book.getTitle(Book.java:16)",
-            "  at com.example.myproject.Author.getBookTitles(Author.java:25)",
-            " at com.example.myproject.Bootstrap.main(Bootstrap.java:14)",
-            "at com.example.myproject.Bootstrap.main(Bootstrap.java:14)"];
-
-            let x: Vec<Line> = x.iter().map(|s| Line(s)).collect();
-
-    let stacktraces = get_stacktraces(x.as_slice());
-
-    for stacktrace in stacktraces {
-        println!("({}, {})", stacktrace.0, stacktrace.1);
-    }
-
-    
     init_tracing();
 
     let configuration = get_configuration().unwrap_or_else(|err| {
@@ -56,14 +27,13 @@ async fn main() {
         std::process::exit(1);
     });
 
+    // TODO body limit
     let router = Router::new()
         .route("/", get(index_handler))
         .route("/{id}", get(paste_handler))
         .route("/parse", get(parse_handler))
         .route("/upload", post(upload_handler))
         .route("/raw/{id}", get(raw_handler));
-
-    // TODO body limit
 
     let application = Application {
         host: configuration.application.host,

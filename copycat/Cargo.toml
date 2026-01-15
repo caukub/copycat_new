@@ -24,3 +24,5 @@ mclog = { version = "0.1.0", path = "../mclog" }
 magika = { version = "1.0.0", features = ["_test"] }
 futures-util = "0.3.31"
 tokio-util = { version = "0.7.18", features = ["io"] }
+serde_json = "1.0.149"
+serde_yaml = "0.9.34"

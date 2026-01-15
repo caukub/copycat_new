@@ -25,7 +25,25 @@ pub async fn upload_handler(mut multipart: Multipart) -> Result<Redirect, (Statu
     Err((
         StatusCode::BAD_REQUEST,
         "Field 'content' is missing".to_string(),
-    ))
+    ))    
+}
+
+async fn get_paste_type() -> std::io::Result<()> {
+    let mut file = tokio::fs::File::open("path").await?;
+    let mut buffer = Vec::new();
+    file.read_to_end(&mut buffer).await?;
+
+    // check velikosti
+    // prvni musi byt json pak yaml
+    // mozna se na tohle uplne vykaslat kdyz se pouziva magika
+    // tokio spawn? asi ne omezime na 1 MB
+    if serde_json::from_slice::<serde_json::Value>(&buffer).is_ok() {
+
+    } else if serde_yaml::from_slice::<serde_yaml::Value>(&buffer).is_ok() {
+
+    }
+
+    Ok(())
 }
 
 async fn stream_to_file<S, E>(path: &str, stream: S) -> Result<(), (StatusCode, String)>

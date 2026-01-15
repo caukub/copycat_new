@@ -153,8 +153,35 @@ pub fn get_stacktraces(lines: &[Line]) -> Vec<(usize, usize)> {
     stacktraces
 }
 
-fn get_jars(line: String) -> Vec<(usize, usize)> {
-    let jars = vec![];
+pub fn get_jars(line: String) -> Vec<(usize, usize)> {
+    let mut jars = vec![];
+    let mut in_brackets = false;
 
+    for (i, ch) in line.char_indices() {
+        if ch == '~' && line.get(i + 1..i + 2) == Some("[") {
+            in_brackets = true;
+            continue;
+        }
+
+        if in_brackets {
+            if ch == ']' {
+                in_brackets = false;
+            }
+            continue;
+        }
+
+        if ch == '.' && line.get(i..i + 4) == Some(".jar") {
+            let start = line[..i]
+                .rfind(|sep: char| sep == ' ' || sep == '[' || sep == '/' || sep == '(' || sep == ':')
+                .map(|idx| {
+                    let sep_char = line[idx..].chars().next().unwrap();
+                    idx + sep_char.len_utf8()
+                })
+                .unwrap_or(0);
+            
+            let end = i + 4;
+            jars.push((start, end));
+        }
+    }
     jars
 }
