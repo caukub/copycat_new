@@ -13,16 +13,6 @@ Example invalid YAML paste: https://paste.caukub.dev/abcdefgh
 It can be used as a regular pastebin since all other file formats are automatically highlighted. However, the reason Copycat was built is specialized support for Minecraft logs (and YAML files).
 
 ### Pastebin Features
-- Highlighting
-
-Different formats for the log level supported not only `/INFO]` but also e.g. `00:00:00 INFO` (some people send console output instead of log which is formatted by hosts)
-
-The lines are highlighted depending on the log level (INFO/WARN/ERROR and even custom for custom messages like ones that appear from hosts in the console).
-
-.jar files in stacktraces (not any, this has some rules, see here)
-
-[CHAT] in client logs
-
 - Static Analysis
 Server info - version, platform, version
 Plugin info - plugins and their version
@@ -40,6 +30,16 @@ Dynamic analysis documentation and examples with explanation: https://github.com
 
 Currently the detections scripts are very basic not so many, more checks will be added and improved over time.
 you can help too (showed who added it)! i will be glad if you can contribute detection (contributing guide napsat - detailed explanation of why atd)
+
+- Highlighting
+
+Different formats for the log level supported not only `/INFO]` but also e.g. `00:00:00 INFO` (some people send console output instead of log which is formatted by hosts)
+
+The lines are highlighted depending on the log level (INFO/WARN/ERROR and even custom for custom messages like ones that appear from hosts in the console).
+
+.jar files in stacktraces (not any, this has some rules, see here)
+
+[CHAT] in client logs
 
 - IP addresses censorship
 
