@@ -22,50 +22,23 @@ impl<'a> Parser<'a> {
     }
 
     pub fn parse(&self) -> Vec<LogEntry<'a>> {
-        let mut entries = vec![];
-
+        let mut entries = Vec::with_capacity(self.lines.len());
         let mut current_state: Option<LogLevel> = None;
-
-        for &line in self.lines {
-            let line = Line(line);
-
-            if current_state == None {
-                if line.log_level() == Some(LogLevel::Info) {
-                    current_state = Some(LogLevel::Error);
-                } else if line.log_level() == Some(LogLevel::Warn) {
-                    current_state = Some(LogLevel::Warn);
-                } else if line.log_level() == Some(LogLevel::Error) {
-                    current_state = Some(LogLevel::Error);
-                }
-            } else if current_state == Some(LogLevel::Info) {
-                if line.log_level() == Some(LogLevel::Warn) {
-                    current_state = Some(LogLevel::Warn);
-                } else if line.log_level() == Some(LogLevel::Error) {
-                    current_state = Some(LogLevel::Error);
-                }
-            } else if current_state == Some(LogLevel::Warn) {
-                if line.log_level() == Some(LogLevel::Info) {
-                    current_state = Some(LogLevel::Info);
-                } else if line.log_level() == Some(LogLevel::Error) {
-                    current_state = Some(LogLevel::Error);
-                }
-            } else if current_state == Some(LogLevel::Error) {
-                if line.log_level() == Some(LogLevel::Info) {
-                    current_state = Some(LogLevel::Info);
-                } else if line.log_level() == Some(LogLevel::Warn) {
-                    current_state = Some(LogLevel::Warn);
-                }
+    
+        for &line_str in self.lines {
+            let line = Line(line_str);
+            
+            if let Some(level) = line.log_level() {
+                current_state = Some(level);
             }
-
-            let new_entry = LogEntry {
+    
+            entries.push(LogEntry {
                 log_level: current_state,
                 prefix: line.prefix(),
                 message: line.message(),
-            };
-
-            entries.push(new_entry);
+            });
         }
-
+    
         entries
     }
 
@@ -77,7 +50,7 @@ impl<'a> Parser<'a> {
         let mut id: usize = 1;
 
         for entry in entries {
-            if entry.prefix.is_none_or(|x| x.is_empty()) && entry.message.is_empty() { continue; }
+            if entry.prefix.is_none_or(|p| p.is_empty()) && entry.message.is_empty() { continue; }
 
             let log_level = match entry.log_level {
                 Some(LogLevel::Info) => "i",
@@ -95,19 +68,12 @@ impl<'a> Parser<'a> {
                     html_escape::encode_text(entry.prefix.unwrap_or_default()),
                     html_escape::encode_text(entry.message),
                 ),
-                Some(LogLevel::Warn) | Some(LogLevel::Error) | None => format!(
+                Some(LogLevel::Warn) | Some(LogLevel::Error) |  Some(LogLevel::Custom) | None => format!(
                     r#"<span class="p" id="L{}"><span class="{}">{}{}</span></span>"#,
                     id,
                     log_level,
                     html_escape::encode_text(entry.prefix.unwrap_or_default()),
                     html_escape::encode_text(entry.message),
-                ),
-                Some(LogLevel::Custom) => format!(
-                    r#"<span class="p" id="L{}"><span class="{}">{}</span>{}</span>"#,
-                    id,
-                    log_level,
-                    html_escape::encode_text(entry.prefix.unwrap_or_default()),
-                    html_escape::encode_text(entry.message)
                 ),
             };
             html.push(html_part);
