@@ -6,14 +6,16 @@ I'm happy to announce I just released a new Minecraft-focused Pastebin and publi
 
 Pastebin site: https://paste.caukub.dev
 
-It can also be used as a regular pastebin since all other file formats are automatically highlighted. However, the reason Copycat was built is specialized support for Minecraft logs (and YAML files).
+Example pastes: Log - https://paste.caukub.dev/a3pvvE7a; Invalid YAML - https://paste.caukub.dev/abcdefgh
+
+It can be used as a regular pastebin since all other file formats are automatically highlighted. However, the reason Copycat was built is specialized support for Minecraft logs (and YAML files).
 
 ### Pastebin Features
 - Highlighting
 
 The lines are highlighted depending on the log level (INFO/WARN/ERROR and even custom for custom messages like ones that appear from hosts in the console).
 
-Different formats for the log level supported not only `/INFO]` but also e.g. `00:00:00 INFO` (some people send console output instead of log which can be formatted by host)
+Different formats for the log level supported not only `/INFO]` but also e.g. `00:00:00 INFO` (some people send console output instead of log which is formatted by hosts)
 
 .jar files in stacktraces (not any, this has some rules, see here)
 
@@ -25,20 +27,25 @@ Plugin info - plugins and their version
 Port info - server, query, rcon, __plugins__, __collisions__, shows if port is TCP/UDP
 
 - Dynamic Analysis
+
 This is the main reason Copycat was created.
 
-Dynamic analysis examples: https://github.com/caukub/copycat/detection-examples/
+get info from static analyzer and you can write custom scripts that
+
+Dynamic analysis used on the site: https://github.com/caukub/copycat/detections/
+Dynamic analysis documentation and examples with explanation: https://github.com/caukub/copycat/detection-examples/
+
+Currently the detections scripts are very basic not so many, I made it mainly for host, when the checks will improve in time.
+you can help too (showed who added it)! i will be glad if you can contribute detection (contributing guide napsat - detailed explanation of why atd)
 
 - IP addresses censorship
 
 IP addresses are automatically censored.
-Plugins (and mods in the future) and server related versions that match IP addresses are not.
+Plugins and server related versions that match IP addresses are not.
 
 - API
 
-If you want to please DM me
-
-Those are all features implemented by the underlying [`mclog`](https://github.com/caukub/mclog) library.
+Features above are all features implemented using the [`mclog`](https://github.com/caukub/mclog) library.
 
 - Developer API
 
@@ -47,23 +54,7 @@ Mainly for shared hosts
 - Invalid YAML detection
 
 If paste content seems to be YAML but the format is not valid YAML (detected by awesome tool [magika](https://securityresearch.google/magika/introduction/overview)), the paste will show you parser error which tries to be human friendly as possible.
-It is even possible to request AI explanation of what's wrong (AI explanation is opt-in feature, by default, only the parser error is shown can be disabled too. Magika can be disabled too).
-
-similar to mclo.gs
-
-Limitations:
-
-- Client logs are highlighted correctly (including some extra highlighting like chat messages), but dynamic analysis will be provided only for servers. Some static analysis may be added in the future but right now there is none.
-
-- No crash log support
-
-- Mod support for static analysis is not implemented yet
-
-Currently the detections scripts are very basic not so many, I made it mainly for host, when the checks will improve in time.
-you can help too (showed who added it)! i will be glad if you can contribute detection (contributing guide napsat - detailed explanation of why atd)
-
-works without js
-automatic highlighting (highlights all formats)
+It is even possible to request AI explanation of what's wrong (AI explanation is opt-in feature, by default, only the parser error is shown and even the Magika detection can be disabled too).
 
 >Why not just use mclo.gs?
 
@@ -71,11 +62,16 @@ The main motivation for building copycat.
 
 As many of you surely know, is heavily based on _context_
 
-Example pastes:
+Limitations:
 
-- Minecraft Log - https://paste.caukub.dev/abc
+- Client logs are highlighted correctly (including some extra highlighting like chat messages), but dynamic analysis will be provided only for servers. Some static analysis may be added in the future but right now there is none.
 
-- Invalid YAML - https://paste.caukub.dev/abc
+- No crash log support
+
+- Mod support for static analysis is not implemented yet, meaning IP address censorship will hide matching mods (but only in some messages) and you can't use it in dynamic analysis
+
+works without js
+automatic highlighting (highlights all formats)
 
 For the Pastebin service itself there is no license meaning it's not open-source (this will likely change soon, but I can't promise) to use for everyone but the source code and documentation is available: https://github.com/caukub/copycat
 
