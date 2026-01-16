@@ -3,6 +3,7 @@ use axum::{
     http::StatusCode,
     response::{Html, IntoResponse, Response},
 };
+use configuration::Settings;
 #[cfg(feature = "magika")]
 use std::sync::{Arc, Mutex};
 
@@ -22,7 +23,7 @@ where
             Ok(html) => Html(html).into_response(),
             Err(err) => (
                 StatusCode::INTERNAL_SERVER_ERROR,
-                format!("Failed to render template. Error: {err}"),
+                format!("Failed to render template. Error: {}", err),
             )
                 .into_response(),
         }
@@ -31,6 +32,7 @@ where
 
 #[derive(Clone)]
 pub struct AppState {
+    pub configuration: Settings,
     #[cfg(feature = "magika")]
     pub magika: Option<Arc<Mutex<magika::Session>>>,
 }

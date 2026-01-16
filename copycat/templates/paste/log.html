@@ -164,7 +164,7 @@ Paste | {{ id }}
 
 <pre id="log-content" class="h-full whitespace-pre-wrap break-words px-3">{{ data.content|safe }}</pre>
 
-<button onclick="toggleHighlighting()">Toggle/Disable highlighting</button>
+<p onclick="xdd()">xdd</p>
 
 {% include "slideover.html" %}
 
@@ -193,7 +193,41 @@ Paste | {{ id }}
     }
 </script>
 
-<!-- TODO script na highlightovani radku/entries -->
+<script>
+    const highlightColor = 'oklch(95.32% 0.0218 239.43)';
+
+    document.addEventListener("DOMContentLoaded", (event) => {
+        if (window.location.hash) {
+            let highlightedElement = document.getElementById(window.location.hash.split('#')[1]);
+            highlightedElement.style.backgroundColor = highlightColor;
+            highlightedElement.scrollIntoView({ behavior: 'smooth' });
+        }
+    })
+
+    document.addEventListener("click", (event) => {
+        let clickedElement = event.target;
+
+        let previousElement = document.getElementById(window.location.hash.split('#')[1]);
+
+        if (clickedElement.classList[0] == 'p') {
+            if (window.location.hash && clickedElement.id === window.location.hash.split('#')[1]) {
+                clickedElement.style.backgroundColor = '';
+                history.replaceState(null, null, window.location.pathname + window.location.search);
+            } else {
+                clickedElement.scrollIntoView();
+                clickedElement.style.backgroundColor = highlightColor;
+                window.location.hash = clickedElement.id;
+
+                if (previousElement && window.location.hash && previousElement.id !== clickedElement.id) {
+                    previousElement.style.backgroundColor = '';
+                }
+
+                previousElement = clickedElement;
+            }
+        }
+    })
+</script>
+
 <!-- TODO slideover -->
 
 <script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" type="module"></script>

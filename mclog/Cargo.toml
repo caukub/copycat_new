@@ -6,3 +6,4 @@ edition = "2024"
 
 [dependencies]
 boa_engine = "0.21.0"
+html-escape = "0.2.13"

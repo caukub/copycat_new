@@ -7,21 +7,31 @@ use axum::{
 };
 use futures_util::{Stream, TryStreamExt};
 use rand::{Rng, distr::Alphanumeric};
+use serde::Serialize;
 use std::{io, pin::pin};
 use tokio::{
     fs::File,
     io::{AsyncReadExt, AsyncWriteExt, BufWriter},
 };
 use tokio_util::io::StreamReader;
-use tracing::{error, trace};
+use tracing::trace;
 
 use crate::AppState;
 
+#[derive(Serialize, Clone)]
+#[serde(rename_all = "lowercase")]
 enum PasteType {
     Log,
     Yaml,
     Json,
     Other,
+}
+
+#[derive(Serialize, Clone)]
+#[serde(rename_all = "lowercase")]
+struct PasteMetadata {
+    #[serde(rename = "type")]
+    paste_type: PasteType,
 }
 
 #[tracing::instrument(skip(multipart, state))]
@@ -33,19 +43,50 @@ pub async fn upload_handler(
 
     let _ = get_paste_type(&state).await;
 
+    // save max 5 MB, check if json/yaml only if < 1.5 MB
+
+    let mut paste_type = PasteType::Other;
+
     while let Ok(Some(field)) = multipart.next_field().await {
         if let Some(name) = field.name()
             && name == "content"
         {
             stream_to_file(&id, field).await?;
             trace!("Created paste '{}'", id);
-            return Ok(Redirect::to(&id));
         }
     }
-    Err((
-        StatusCode::BAD_REQUEST,
-        "Field 'content' is missing".to_string(),
-    ))
+
+    let paste_content = tokio::fs::read_to_string(state.configuration.data.directory.join(&id))
+        .await
+        .unwrap();
+    if paste_content.clone().contains("INFO]") {
+        paste_type = PasteType::Log;
+    }
+
+    // x needs to be first because every x is valid y
+    if serde_json::from_str::<serde_json::Value>(&paste_content).is_ok() {
+        paste_type = PasteType::Json;
+    } else if serde_yaml::from_str::<serde_yaml::Value>(&paste_content).is_ok() {
+        paste_type = PasteType::Yaml;
+    }
+
+    let metadata = PasteMetadata { paste_type };
+
+    let json_metadata = serde_json::to_string(&metadata).unwrap();
+
+    let mut file = tokio::fs::File::create(
+        state
+            .configuration
+            .data
+            .directory
+            .join(".metadata")
+            .join(&id),
+    )
+    .await
+    .unwrap();
+    file.write_all(json_metadata.as_bytes()).await.unwrap();
+
+    Ok(Redirect::to(&id))
 }
 
 // check velikosti

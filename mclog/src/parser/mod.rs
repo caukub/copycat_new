@@ -24,7 +24,7 @@ impl<'a> Parser<'a> {
     pub fn parse(&self) -> Vec<LogEntry<'a>> {
         self.lines
             .iter()
-            .map(|&line| {
+            .filter_map(|&line| {
                 let log_level = if line.contains("INFO") {
                     Some(LogLevel::Info)
                 } else if line.contains("WARN") {
@@ -35,13 +35,64 @@ impl<'a> Parser<'a> {
                     None
                 };
 
-                LogEntry {
+                let mut prefix: Option<&str> = None;
+                let mut message = line;
+
+                Some(LogEntry {
                     log_level,
-                    prefix: None,
-                    message: line,
-                }
+                    prefix,
+                    message,
+                })
             })
             .collect()
+    }
+
+    pub fn html(&self) -> Vec<String> {
+        let mut html: Vec<String> = vec![];
+
+        let entries = self.parse();
+
+        let mut id: usize = 1;
+
+        for entry in entries {
+            if entry.prefix.is_none_or(|x| x.is_empty()) && entry.message.is_empty() { continue; }
+
+            let log_level = match entry.log_level {
+                Some(LogLevel::Info) => "i",
+                Some(LogLevel::Warn) => "w",
+                Some(LogLevel::Error) => "e",
+                Some(LogLevel::Custom) => "c",
+                None => "",
+            };
+
+            let html_part = match entry.log_level {
+                Some(LogLevel::Info) => format!(
+                    r#"<span class="p" id="L{}"><span class={}>{}</span>{}</span>"#,
+                    id,
+                    log_level,
+                    html_escape::encode_text(entry.prefix.unwrap_or_default()),
+                    html_escape::encode_text(entry.message),
+                ),
+                Some(LogLevel::Warn) | Some(LogLevel::Error) | None => format!(
+                    r#"<span class="p" id="L{}"><span class="{}">{}{}</span></span>"#,
+                    id,
+                    log_level,
+                    html_escape::encode_text(entry.prefix.unwrap_or_default()),
+                    html_escape::encode_text(entry.message),
+                ),
+                Some(LogLevel::Custom) => format!(
+                    r#"<span class="p" id="L{}"><span class="{}">{}</span>{}</span>"#,
+                    id,
+                    log_level,
+                    html_escape::encode_text(entry.prefix.unwrap_or_default()),
+                    html_escape::encode_text(entry.message)
+                ),
+            };
+            html.push(html_part);
+            id += 1;
+        }
+
+        html
     }
 }
 
@@ -172,13 +223,15 @@ pub fn get_jars(line: String) -> Vec<(usize, usize)> {
 
         if ch == '.' && line.get(i..i + 4) == Some(".jar") {
             let start = line[..i]
-                .rfind(|sep: char| sep == ' ' || sep == '[' || sep == '/' || sep == '(' || sep == ':')
+                .rfind(|sep: char| {
+                    sep == ' ' || sep == '[' || sep == '/' || sep == '(' || sep == ':'
+                })
                 .map(|idx| {
                     let sep_char = line[idx..].chars().next().unwrap();
                     idx + sep_char.len_utf8()
                 })
                 .unwrap_or(0);
-            
+
             let end = i + 4;
             jars.push((start, end));
         }

@@ -73,6 +73,51 @@
       return new Uint8Array(await new Response(decompressedStream).arrayBuffer());
     }
   </script>
+
+<style>
+	textarea {
+		font-family: SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+		height: calc(100dvh - 4.95 * calc(var(--spacing) * 16));
+		border: none;
+		overflow: auto;
+		outline: none;
+
+		-webkit-box-shadow: none;
+		-moz-box-shadow: none;
+		box-shadow: none;
+
+		resize: none;
+	}
+
+	.bd {
+		border: 1px solid oklch(0 0 0 / 12.5%);
+		box-shadow: 0 0.5rem 1rem #00000026;
+		border-radius: 0.25rem;
+	}
+
+	.bbd {
+		border: 1px solid oklch(0 0 0 / 12.5%);
+
+		border-radius: 0.25rem;
+	}
+
+	.bb {
+		border-bottom: 1px solid oklch(0 0 0 / 12.5%);
+	}
+
+	.bt {
+		border-top: 1px solid oklch(0 0 0 / 12.5%);
+	}
+
+	.upload-btns {
+		padding: 0.5rem 0.6rem;
+		background-color: #017bfb;	
+	}
+
+	svg {
+		display: inline-block;
+	}
+</style>
 {% endblock %}
 
 {% block content %}
@@ -151,52 +196,3 @@
 	</div>
 </form>
 {% endblock %}
-
-{% block head %}
-
-<style>
-	textarea {
-		font-family: SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
-		height: calc(100dvh - 4.95 * calc(var(--spacing) * 16));
-		border: none;
-		overflow: auto;
-		outline: none;
-
-		-webkit-box-shadow: none;
-		-moz-box-shadow: none;
-		box-shadow: none;
-
-		resize: none;
-	}
-
-	.bd {
-		border: 1px solid rgba(0, 0, 0, 0.125);
-		box-shadow: 0 0.5rem 1rem #00000026;
-		border-radius: 0.25rem;
-	}
-
-	.bbd {
-		border: 1px solid rgba(0, 0, 0, 0.125);
-
-		border-radius: 0.25rem;
-	}
-
-	.bb {
-		border-bottom: 1px solid rgba(0, 0, 0, 0.125);
-	}
-
-	.bt {
-		border-top: 1px solid rgba(0, 0, 0, 0.125);
-	}
-
-	.upload-btns {
-		padding: 0.5rem 0.6rem;
-		background-color: #017bfb;	
-	}
-
-	svg {
-		display: inline-block;
-	}
-</style>
-
-{% endblock%}

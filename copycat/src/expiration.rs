@@ -2,7 +2,7 @@ use std::time::{Duration, SystemTime};
 
 use tracing::{debug, trace};
 
-use crate::configuration::{DataSettings};
+use crate::configuration::DataSettings;
 
 const CHECK_PERIOD: Duration = Duration::from_hours(1);
 const MAX_AGE: Duration = Duration::from_secs(3600 * 24 * 365);
@@ -28,7 +28,10 @@ pub async fn delete_expired(data: &DataSettings) -> std::io::Result<()> {
                 && elapsed > MAX_AGE
             {
                 tokio::fs::remove_file(&path).await?;
+                tokio::fs::remove_file(data.directory.join(".metadata")).await?;
+
                 trace!("Deleted file {}", path.display());
+
                 deleted_count += 1;
             }
         }

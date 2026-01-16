@@ -1,10 +1,14 @@
 use boa_engine::{
-    Context, JsValue, JsResult, NativeFunction, 
-    object::ObjectInitializer, property::Attribute, js_string
+    Context, JsResult, JsValue, NativeFunction, js_string, object::ObjectInitializer,
+    property::Attribute,
 };
 
 fn my_log(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-    let message = args.get(0).cloned().unwrap_or_default().to_string(context)?;
+    let message = args
+        .get(0)
+        .cloned()
+        .unwrap_or_default()
+        .to_string(context)?;
     println!("Log: {}", message.to_std_string_escaped());
     Ok(JsValue::undefined())
 }
@@ -18,11 +22,11 @@ pub fn run_js() {
         .build();
 
     // Register it globally
-    context.register_global_property(
-        js_string!("myConsole"),
-        custom_obj,
-        Attribute::all(),
-    );
+    context.register_global_property(js_string!("myConsole"), custom_obj, Attribute::all());
 
-    context.eval(boa_engine::Source::from_bytes("myConsole.log('It works!');")).unwrap();
+    context
+        .eval(boa_engine::Source::from_bytes(
+            "myConsole.log('It works!');",
+        ))
+        .unwrap();
 }

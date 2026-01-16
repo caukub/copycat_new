@@ -5,8 +5,6 @@
  * @param {function} callback - Funkce volaná po dokončení (err, result)
  */
 function hasLine(pattern, errorKey, callback) {
-    // Zde by probíhalo asynchronní čtení souboru/logu
-    // Pro ukázku předpokládejme, že jsme řádek našli:
     const found = true; 
   
     if (found) {

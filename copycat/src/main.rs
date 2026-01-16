@@ -1,7 +1,9 @@
 use std::net::{IpAddr, SocketAddr};
 
 use axum::{
-    Router, extract::DefaultBodyLimit, routing::{get, post}
+    Router,
+    extract::DefaultBodyLimit,
+    routing::{get, post},
 };
 use copycat::{
     AppState,
@@ -10,7 +12,6 @@ use copycat::{
     routes::{index_handler, paste_handler, raw_handler, upload_handler},
     tracing::init_tracing,
 };
-use mclog::{parser::Parser};
 use tokio::signal;
 use tracing::{debug, error};
 
@@ -23,12 +24,20 @@ async fn main() {
         std::process::exit(1);
     });
 
+    let data_config = configuration.data.clone();
+
+    std::fs::create_dir_all(data_config.directory.join(".metadata")).unwrap_or_else(|err| {
+        error!("Failed to create data directory: {}", err);
+        std::process::exit(1);
+    });
+
     #[cfg(feature = "magika")]
     let magika_session = magika::Session::new()
         .ok()
         .map(|s| std::sync::Arc::new(std::sync::Mutex::new(s)));
 
     let app_state = AppState {
+        configuration: configuration.clone(),
         #[cfg(feature = "magika")]
         magika: magika_session,
     };
@@ -36,7 +45,6 @@ async fn main() {
     let router = Router::new()
         .route("/", get(index_handler))
         .route("/{id}", get(paste_handler))
-        .route("/parse", get(parse_handler))
         .route("/upload", post(upload_handler))
         .route("/raw/{id}", get(raw_handler))
         .with_state(app_state)
@@ -70,7 +78,7 @@ async fn main() {
     );
 
     tokio::spawn(async move {
-        if let Err(err) = delete_expired(&configuration.data).await {
+        if let Err(err) = delete_expired(&data_config).await {
             error!(
                 "Failed to run background task for deleting expired files: {}",
                 err
@@ -130,20 +138,4 @@ async fn shutdown_signal() {
         _ = ctrl_c => {},
         _ = terminate => {},
     }
-}
-
-async fn parse_handler() -> String {
-    let lines = [
-        "INFO jedna",
-        "WARN dva",
-        "tri",
-        "ERROR pet",
-        "sest",
-        "sedm",
-        "WARN ahoj",
-    ];
-    let parser = Parser::new(&lines);
-    let parsed_log = parser.parse();
-
-    format!("{:?}", parsed_log)
 }
