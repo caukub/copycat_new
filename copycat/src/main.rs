@@ -10,7 +10,7 @@ use copycat::{
     routes::{index_handler, paste_handler, raw_handler, upload_handler},
     tracing::init_tracing,
 };
-use mclog::parser::Parser;
+use mclog::{parser::Parser};
 use tokio::signal;
 use tracing::{debug, error};
 

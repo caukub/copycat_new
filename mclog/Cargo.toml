@@ -3,3 +3,6 @@ name = "mclog"
 version = "0.1.0"
 authors = ["caukub"]
 edition = "2024"
+
+[dependencies]
+boa_engine = "0.21.0"
