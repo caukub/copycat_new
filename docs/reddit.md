@@ -2,20 +2,22 @@
 
 Hey Admincraft,
 
-I'm happy to announce I just released a new Minecraft-focused Pastebin and published the underlying open-source Rust library for log parsing and analysis called [`mclog`](https://github.com/caukub/mclog).
+I'm happy to announce I just released a new Minecraft-focused Pastebin and published the underlying open-source Rust library for log parsing and advanced analysis called [`mclog`](https://github.com/caukub/mclog).
 
 Pastebin site: https://paste.caukub.dev
 
-Example pastes: Log - https://paste.caukub.dev/a3pvvE7a; Invalid YAML - https://paste.caukub.dev/abcdefgh
+Example log paste showing many features: https://paste.caukub.dev/a3pvvE7a
+
+Example invalid YAML paste: https://paste.caukub.dev/abcdefgh
 
 It can be used as a regular pastebin since all other file formats are automatically highlighted. However, the reason Copycat was built is specialized support for Minecraft logs (and YAML files).
 
 ### Pastebin Features
 - Highlighting
 
-The lines are highlighted depending on the log level (INFO/WARN/ERROR and even custom for custom messages like ones that appear from hosts in the console).
-
 Different formats for the log level supported not only `/INFO]` but also e.g. `00:00:00 INFO` (some people send console output instead of log which is formatted by hosts)
+
+The lines are highlighted depending on the log level (INFO/WARN/ERROR and even custom for custom messages like ones that appear from hosts in the console).
 
 .jar files in stacktraces (not any, this has some rules, see here)
 
@@ -26,7 +28,7 @@ Server info - version, platform, version
 Plugin info - plugins and their version
 Port info - server, query, rcon, __plugins__, __collisions__, shows if port is TCP/UDP
 
-- Dynamic Analysis
+- ! __Dynamic Analysis__ !
 
 This is the main reason Copycat was created.
 
@@ -53,7 +55,7 @@ Mainly for shared hosts
 
 - Invalid YAML detection
 
-If paste content seems to be YAML but the format is not valid YAML (detected by awesome tool [magika](https://securityresearch.google/magika/introduction/overview)), the paste will show you parser error which tries to be human friendly as possible.
+If file content seems to be YAML but the format is not valid YAML (detected by awesome tool [magika](https://securityresearch.google/magika/introduction/overview)), the paste will show you parser error which tries to be human friendly.
 It is even possible to request AI explanation of what's wrong (AI explanation is opt-in feature, by default, only the parser error is shown and even the Magika detection can be disabled too).
 
 >Why not just use mclo.gs?
