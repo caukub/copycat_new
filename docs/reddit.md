@@ -2,18 +2,23 @@
 
 Hey Admincraft,
 
-I'm happy to announce I just released a new Minecraft-focused pastebin and published the underlying open-source Rust library for log parsing and analysis.
+I'm happy to announce I just released a new Minecraft-focused Pastebin and published the underlying open-source Rust library for log parsing and analysis called [`mclog`](https://github.com/caukub/mclog).
 
-It can also be used as a regular pastebin since all other file formats are highlighted. However, the reason Copycat was built is specialized support for Minecraft logs (and YAML files).
+Pastebin site: https://paste.caukub.dev
+
+It can also be used as a regular pastebin since all other file formats are automatically highlighted. However, the reason Copycat was built is specialized support for Minecraft logs (and YAML files).
 
 ### Pastebin Features
 - Highlighting
 
-info/warn/errors and even custom log level for host messages (appears in some host consoles)
-jars in stacktraces
+The lines are highlighted depending on the log level (INFO/WARN/ERROR and even custom for custom messages like ones that appear from hosts in the console).
+
+Different formats for the log level supported not only `/INFO]` but also e.g. `00:00:00 INFO` (some people send console output instead of log which can be formatted by host)
+
+.jar files in stacktraces (not any, this has some rules, see here)
+
 [CHAT] in client logs
 
-stacktraces
 - Static Analysis
 Server info - version, platform, version
 Plugin info - plugins and their version
@@ -33,14 +38,16 @@ Plugins (and mods in the future) and server related versions that match IP addre
 
 If you want to please DM me
 
-Those are all features implemented by the `mclog` library.
+Those are all features implemented by the underlying [`mclog`](https://github.com/caukub/mclog) library.
 
 - Developer API
+
 Mainly for shared hosts
 
 - Invalid YAML detection
 
-If paste content seems to be YAML but the format is not valid YAML, the paste will show you and parser error, human friendly as possible. It is even possible to request AI explanation of what's wrong (AI explanation is opt-in feature, by default, only the parser error is shown; (is provided by [magika](https://securityresearch.google/magika/introduction/overview) can be disabled too)).
+If paste content seems to be YAML but the format is not valid YAML (detected by awesome tool [magika](https://securityresearch.google/magika/introduction/overview)), the paste will show you parser error which tries to be human friendly as possible.
+It is even possible to request AI explanation of what's wrong (AI explanation is opt-in feature, by default, only the parser error is shown can be disabled too. Magika can be disabled too).
 
 similar to mclo.gs
 
@@ -61,12 +68,6 @@ automatic highlighting (highlights all formats)
 >Why not just use mclo.gs?
 
 The main motivation for building copycat.
-
-also 00:00:00[INFO] (some people send console which can be formatted by host)
-
-Site: https://paste.caukub.dev
-
-mclog: https://github.com/caukub/mclog
 
 As many of you surely know, is heavily based on _context_
 
