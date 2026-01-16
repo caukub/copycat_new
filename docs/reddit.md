@@ -2,7 +2,7 @@
 
 Hey Admincraft,
 
-I'm happy to announce I just released a new Minecraft-focused Pastebin and published the underlying open-source Rust library for log parsing and advanced analysis called [`mclog`](https://github.com/caukub/mclog).
+I'm happy to announce I just released a new Minecraft-focused Pastebin called [Copycat](https://github.com/caukub/copycat) and published the underlying open-source Rust library for log parsing and advanced analysis called [`mclog`](https://github.com/caukub/mclog).
 
 Pastebin site: https://paste.caukub.dev
 
@@ -34,10 +34,11 @@ This is the main reason Copycat was created.
 
 get info from static analyzer and you can write custom scripts that
 
-Dynamic analysis used on the site: https://github.com/caukub/copycat/detections/
+Dynamic analysis detections used on the site: https://github.com/caukub/copycat/detections/
+
 Dynamic analysis documentation and examples with explanation: https://github.com/caukub/copycat/detection-examples/
 
-Currently the detections scripts are very basic not so many, I made it mainly for host, when the checks will improve in time.
+Currently the detections scripts are very basic not so many, more checks will be added and improved over time.
 you can help too (showed who added it)! i will be glad if you can contribute detection (contributing guide napsat - detailed explanation of why atd)
 
 - IP addresses censorship
@@ -47,7 +48,7 @@ Plugins and server related versions that match IP addresses are not.
 
 - API
 
-Features above are all features implemented using the [`mclog`](https://github.com/caukub/mclog) library.
+Features listed above are all features implemented using the [`mclog`](https://github.com/caukub/mclog) library.
 
 - Developer API
 
@@ -56,6 +57,7 @@ Mainly for shared hosts
 - Invalid YAML detection
 
 If file content seems to be YAML but the format is not valid YAML (detected by awesome tool [magika](https://securityresearch.google/magika/introduction/overview)), the paste will show you parser error which tries to be human friendly.
+
 It is even possible to request AI explanation of what's wrong (AI explanation is opt-in feature, by default, only the parser error is shown and even the Magika detection can be disabled too).
 
 >Why not just use mclo.gs?
@@ -66,17 +68,20 @@ As many of you surely know, is heavily based on _context_
 
 Limitations:
 
-- Client logs are highlighted correctly (including some extra highlighting like chat messages), but dynamic analysis will be provided only for servers. Some static analysis may be added in the future but right now there is none.
+- Dynamic analysis will be provided only for servers. Some static analysis may be added in the future but right now there is none.
 
 - No crash log support
 
-- Mod support for static analysis is not implemented yet, meaning IP address censorship will hide matching mods (but only in some messages) and you can't use it in dynamic analysis
+- Mod support for static analysis is not implemented yet, meaning IP address censorship will hide mod versions matching IP addresses except mod load message thus you can't use it in dynamic analysis
 
-works without js
-automatic highlighting (highlights all formats)
+Some extra info:
 
-For the Pastebin service itself there is no license meaning it's not open-source (this will likely change soon, but I can't promise) to use for everyone but the source code and documentation is available: https://github.com/caukub/copycat
+- Works without JavaScript (but for few non-important features it's needed)
 
-I will gladly ... feedback (easiest on discord which you can find on github).
+- Can link specific lines
 
-attach images!!!
+- For the Pastebin service itself there is no license meaning it's not open-source (this will likely change soon, but I can't promise) to use for everyone but the source code and documentation is available: https://github.com/caukub/copycat
+
+- I will gladly ... feedback (easiest on discord which you can find on github).
+
+<attach images!!>
