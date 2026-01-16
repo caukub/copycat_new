@@ -22,10 +22,13 @@ impl<'a> Parser<'a> {
     }
 
     pub fn parse(&self) -> Vec<LogEntry<'a>> {
-        let mut entries = Vec::with_capacity(self.lines.len());
+        let lines = self.lines;
+
+        let mut entries = Vec::with_capacity(lines.len());
+        
         let mut current_state: Option<LogLevel> = None;
     
-        for &line_str in self.lines {
+        for &line_str in lines {
             let line = Line(line_str);
             
             if let Some(level) = line.log_level() {

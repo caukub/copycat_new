@@ -164,8 +164,6 @@ Paste | {{ id }}
 
 <pre id="log-content" class="h-full whitespace-pre-wrap break-words px-3">{{ data.content|safe }}</pre>
 
-<p onclick="xdd()">xdd</p>
-
 {% include "slideover.html" %}
 
 {% endblock %}
@@ -248,7 +246,7 @@ Paste | {{ id }}
     })
 </script>
 
-<script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" type="module"></script>
+<script src="/assets/elements.js" type="module"></script>
 
 <style>
 	.i, .w, .e, .c {
@@ -264,7 +262,7 @@ Paste | {{ id }}
 		display: block;
 		counter-increment: line-number;
 		position: relative;
-		padding-left: 2.4em; /* TODO variable depending on line count */
+		padding-left: 2.4em; /* TODO depend on line count */
 	}
 
 	pre .p::before {

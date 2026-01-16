@@ -1,0 +1,21 @@
+[15:14:38] [ServerMain/INFO]: [bootstrap] Running Java 21 (OpenJDK 64-Bit Server VM 21.0.2+13-LTS; Azul Systems, Inc. Zulu21.32+17-CA) on Linux 6.1.0-13-amd64 (amd64)
+[15:14:38] [ServerMain/INFO]: [bootstrap] Loading Purpur 1.21.4-2416-HEAD@51aafbc (2025-04-12T23:37:33Z) for Minecraft 1.21.4
+[15:14:39] [ServerMain/WARN]: [oshi.software.os.linux.LinuxOperatingSystem] Did not find udev library in operating system. Some features may not work.
+[15:14:39] [ServerMain/INFO]: [PluginInitializerManager] Initializing plugins...
+[15:14:39] [ServerMain/ERROR]: [DirectoryProviderSource] Error loading plugin: java.lang.IllegalArgumentException: Directory 'plugins/.paper-remapped/citizensapi-2.0.33-SNAPSHOT-sources.jar' does not contain a paper-plugin.yml or plugin.yml! Could not determine plugin type, cannot load a plugin from it!
+java.lang.RuntimeException: java.lang.IllegalArgumentException: Directory 'plugins/.paper-remapped/citizensapi-2.0.33-SNAPSHOT-sources.jar' does not contain a paper-plugin.yml or plugin.yml! Could not determine plugin type, cannot load a plugin from it!
+	at io.papermc.paper.plugin.provider.source.FileProviderSource.registerProviders(FileProviderSource.java:85) ~[purpur-1.21.4.jar:1.21.4-2416-51aafbc]
+	at io.papermc.paper.plugin.provider.source.DirectoryProviderSource.registerProviders(DirectoryProviderSource.java:52) ~[purpur-1.21.4.jar:1.21.4-2416-51aafbc]
+	at io.papermc.paper.plugin.provider.source.DirectoryProviderSource.registerProviders(DirectoryProviderSource.java:17) ~[purpur-1.21.4.jar:1.21.4-2416-51aafbc]
+	at io.papermc.paper.plugin.util.EntrypointUtil.registerProvidersFromSource(EntrypointUtil.java:15) ~[purpur-1.21.4.jar:1.21.4-2416-51aafbc]
+	at io.papermc.paper.plugin.PluginInitializerManager.load(PluginInitializerManager.java:113) ~[purpur-1.21.4.jar:1.21.4-2416-51aafbc]
+	at net.minecraft.server.Main.main(Main.java:117) ~[purpur-1.21.4.jar:1.21.4-2416-51aafbc]
+	at io.papermc.paper.PaperBootstrap.boot(PaperBootstrap.java:21) ~[purpur-1.21.4.jar:1.21.4-2416-51aafbc]
+	at org.bukkit.craftbukkit.Main.main(Main.java:288) ~[purpur-1.21.4.jar:1.21.4-2416-51aafbc]
+	at io.papermc.paperclip.Paperclip.lambda$main$0(Paperclip.java:42) ~[app:?]
+	at java.base/java.lang.Thread.run(Unknown Source) ~[?:?]
+Caused by: java.lang.IllegalArgumentException: Directory 'plugins/.paper-remapped/citizensapi-2.0.33-SNAPSHOT-sources.jar' does not contain a paper-plugin.yml or plugin.yml! Could not determine plugin type, cannot load a plugin from it!
+	... 10 more
+[15:14:39] [ServerMain/INFO]: [PluginInitializerManager] Initialized 41 plugins
+[15:14:39] [ServerMain/INFO]: [PluginInitializerManager] Paper plugins (1):
+ - Minepacks (2.4.27-T20240129235629)
