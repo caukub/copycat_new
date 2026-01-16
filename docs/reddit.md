@@ -15,7 +15,9 @@ It can be used as a regular pastebin since all other file formats are automatica
 ### Pastebin Features
 - Static Analysis
 Server info - version, platform, version
+
 Plugin info - plugins and their version
+
 Port info - server, query, rcon, __plugins__, __collisions__, shows if port is TCP/UDP
 
 - ! __Dynamic Analysis__ !
