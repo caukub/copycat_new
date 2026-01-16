@@ -2,15 +2,15 @@
 
 Hey Admincraft,
 
-I'm happy to announce I just released new Minecraft-focused Pastebin called [Copycat](https://github.com/caukub/copycat) and published the underlying open-source Rust library for log parsing and advanced analysis called [`mclog`](https://github.com/caukub/mclog).
+I'm happy to announce I just released new Minecraft-focused Pastebin called [Copycat](https://github.com/caukub/copycat) and published the underlying open-source Rust library called [`mclog`](https://github.com/caukub/mclog), a library for log parsing and analysis.
 
 Pastebin site: https://paste.caukub.dev
+
+It can be used as a regular pastebin since all other file formats are automatically highlighted. However, the reason Copycat was built is specialized support for Minecraft logs (and YAML files).
 
 Example log paste showing many features: https://paste.caukub.dev/a3pvvE7a
 
 Example invalid YAML paste: https://paste.caukub.dev/abcdefgh
-
-It can be used as a regular pastebin since all other file formats are automatically highlighted. However, the reason Copycat was built is specialized support for Minecraft logs (and YAML files).
 
 ### Pastebin Features
 - Static Analysis
@@ -78,7 +78,7 @@ Limitations:
 
 Some extra info:
 
-- Works without JavaScript (but few not important features requires JS)
+- Works without JavaScript (but few non-important features requires JS)
 
 - Can link specific lines
 
