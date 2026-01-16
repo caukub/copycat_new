@@ -209,7 +209,27 @@ Paste | {{ id }}
 
         let previousElement = document.getElementById(window.location.hash.split('#')[1]);
 
-        if (clickedElement.classList[0] == 'p') {
+        if (clickedElement.classList.contains('p')) {
+            // TODO rewrite, not ideal approach
+            const beforeStyles = window.getComputedStyle(clickedElement, '::before');
+
+            const beforeWidth = parseFloat(beforeStyles.width);
+            const beforeHeight = parseFloat(beforeStyles.height);
+            const beforeTop = parseFloat(beforeStyles.top);
+            const beforeLeft = parseFloat(beforeStyles.left);
+        
+            const rect = clickedElement.getBoundingClientRect();
+            const clickX = event.clientX - rect.left;
+            const clickY = event.clientY - rect.top;
+        
+            const isClickedOnBefore = 
+                clickX >= beforeLeft && 
+                clickX <= (beforeLeft + beforeWidth) &&
+                clickY >= beforeTop && 
+                clickY <= (beforeTop + beforeHeight);
+
+            if (!isClickedOnBefore) return;
+
             if (window.location.hash && clickedElement.id === window.location.hash.split('#')[1]) {
                 clickedElement.style.backgroundColor = '';
                 history.replaceState(null, null, window.location.pathname + window.location.search);
@@ -228,8 +248,6 @@ Paste | {{ id }}
     })
 </script>
 
-<!-- TODO slideover -->
-
 <script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" type="module"></script>
 
 <style>
@@ -246,7 +264,7 @@ Paste | {{ id }}
 		display: block;
 		counter-increment: line-number;
 		position: relative;
-		padding-left: 2em;
+		padding-left: 2.4em; /* TODO variable depending on line count */
 	}
 
 	pre .p::before {

@@ -13,6 +13,7 @@ use copycat::{
     tracing::init_tracing,
 };
 use tokio::signal;
+use tower_http::services::ServeDir;
 use tracing::{debug, error};
 
 #[tokio::main]
@@ -47,6 +48,7 @@ async fn main() {
         .route("/{id}", get(paste_handler))
         .route("/upload", post(upload_handler))
         .route("/raw/{id}", get(raw_handler))
+        .nest_service("/assets", ServeDir::new("./frontend/assets"))
         .with_state(app_state)
         .layer(DefaultBodyLimit::max(5_000_000));
 

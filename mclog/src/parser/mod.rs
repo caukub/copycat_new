@@ -1,4 +1,4 @@
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum LogLevel {
     Info,
     Warn,
@@ -22,29 +22,51 @@ impl<'a> Parser<'a> {
     }
 
     pub fn parse(&self) -> Vec<LogEntry<'a>> {
-        self.lines
-            .iter()
-            .filter_map(|&line| {
-                let log_level = if line.contains("INFO") {
-                    Some(LogLevel::Info)
-                } else if line.contains("WARN") {
-                    Some(LogLevel::Warn)
-                } else if line.contains("ERROR") {
-                    Some(LogLevel::Error)
-                } else {
-                    None
-                };
+        let mut entries = vec![];
 
-                let mut prefix: Option<&str> = None;
-                let mut message = line;
+        let mut current_state: Option<LogLevel> = None;
 
-                Some(LogEntry {
-                    log_level,
-                    prefix,
-                    message,
-                })
-            })
-            .collect()
+        for &line in self.lines {
+            let line = Line(line);
+
+            if current_state == None {
+                if line.log_level() == Some(LogLevel::Info) {
+                    current_state = Some(LogLevel::Error);
+                } else if line.log_level() == Some(LogLevel::Warn) {
+                    current_state = Some(LogLevel::Warn);
+                } else if line.log_level() == Some(LogLevel::Error) {
+                    current_state = Some(LogLevel::Error);
+                }
+            } else if current_state == Some(LogLevel::Info) {
+                if line.log_level() == Some(LogLevel::Warn) {
+                    current_state = Some(LogLevel::Warn);
+                } else if line.log_level() == Some(LogLevel::Error) {
+                    current_state = Some(LogLevel::Error);
+                }
+            } else if current_state == Some(LogLevel::Warn) {
+                if line.log_level() == Some(LogLevel::Info) {
+                    current_state = Some(LogLevel::Info);
+                } else if line.log_level() == Some(LogLevel::Error) {
+                    current_state = Some(LogLevel::Error);
+                }
+            } else if current_state == Some(LogLevel::Error) {
+                if line.log_level() == Some(LogLevel::Info) {
+                    current_state = Some(LogLevel::Info);
+                } else if line.log_level() == Some(LogLevel::Warn) {
+                    current_state = Some(LogLevel::Warn);
+                }
+            }
+
+            let new_entry = LogEntry {
+                log_level: current_state,
+                prefix: line.prefix(),
+                message: line.message(),
+            };
+
+            entries.push(new_entry);
+        }
+
+        entries
     }
 
     pub fn html(&self) -> Vec<String> {
@@ -153,9 +175,9 @@ mod tests {
     }
 }
 
-pub struct Line(pub &'static str);
+pub struct Line<'a>(pub &'a str);
 
-impl Line {
+impl<'a> Line<'a> {
     fn log_level(&self) -> Option<LogLevel> {
         if self.0.contains("INFO]") {
             return Some(LogLevel::Info);
@@ -171,6 +193,18 @@ impl Line {
         let trimmed = self.0.trim_start();
 
         !trimmed.is_empty() && trimmed.len() != self.0.len() && trimmed.starts_with("at ")
+    }
+
+    fn prefix(&self) -> Option<&'a str> {
+        let index = self.0.find("INFO]:")? + "INFO]:".len();
+        Some(&self.0[..index])
+    }
+
+    fn message(&self) -> &'a str {
+        self.0
+            .split_once("INFO]:")
+            .map(|(_, msg)| msg)
+            .unwrap_or(self.0)
     }
 }
 
