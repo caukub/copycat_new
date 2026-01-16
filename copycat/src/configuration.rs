@@ -1,15 +1,23 @@
+use std::path::PathBuf;
+
 use serde::Deserialize;
 use tracing::error;
 
 #[derive(Deserialize, Clone)]
 pub struct Settings {
     pub application: ApplicationSettings,
+    pub data: DataSettings,
 }
 
 #[derive(Deserialize, Clone)]
 pub struct ApplicationSettings {
     pub host: String,
     pub port: u16,
+}
+
+#[derive(Deserialize, Clone)]
+pub struct DataSettings {
+    pub directory: PathBuf,
 }
 
 pub fn get_configuration() -> Result<Settings, config::ConfigError> {

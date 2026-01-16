@@ -3,8 +3,11 @@ use axum::{
     http::StatusCode,
     response::{Html, IntoResponse, Response},
 };
+#[cfg(feature = "magika")]
+use std::sync::{Arc, Mutex};
 
 pub mod configuration;
+pub mod expiration;
 pub mod routes;
 pub mod tracing;
 
@@ -24,4 +27,10 @@ where
                 .into_response(),
         }
     }
+}
+
+#[derive(Clone)]
+pub struct AppState {
+    #[cfg(feature = "magika")]
+    pub magika: Option<Arc<Mutex<magika::Session>>>,
 }

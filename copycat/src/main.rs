@@ -1,22 +1,18 @@
-use std::{
-    net::{IpAddr, SocketAddr},
-    time::{Duration, SystemTime},
-};
+use std::net::{IpAddr, SocketAddr};
 
 use axum::{
-    Router,
-    routing::{get, post},
+    Router, extract::DefaultBodyLimit, routing::{get, post}
 };
 use copycat::{
+    AppState,
     configuration::get_configuration,
+    expiration::delete_expired,
     routes::{index_handler, paste_handler, raw_handler, upload_handler},
     tracing::init_tracing,
 };
-use mclog::parser::{Parser};
+use mclog::parser::Parser;
 use tokio::signal;
-use tracing::{debug, error, trace};
-
-const DATA_DIR: &str = "data";
+use tracing::{debug, error};
 
 #[tokio::main]
 async fn main() {
@@ -27,13 +23,24 @@ async fn main() {
         std::process::exit(1);
     });
 
-    // TODO body limit
+    #[cfg(feature = "magika")]
+    let magika_session = magika::Session::new()
+        .ok()
+        .map(|s| std::sync::Arc::new(std::sync::Mutex::new(s)));
+
+    let app_state = AppState {
+        #[cfg(feature = "magika")]
+        magika: magika_session,
+    };
+
     let router = Router::new()
         .route("/", get(index_handler))
         .route("/{id}", get(paste_handler))
         .route("/parse", get(parse_handler))
         .route("/upload", post(upload_handler))
-        .route("/raw/{id}", get(raw_handler));
+        .route("/raw/{id}", get(raw_handler))
+        .with_state(app_state)
+        .layer(DefaultBodyLimit::max(5_000_000));
 
     let application = Application {
         host: configuration.application.host,
@@ -62,8 +69,8 @@ async fn main() {
         })
     );
 
-    tokio::spawn(async {
-        if let Err(err) = delete_expired().await {
+    tokio::spawn(async move {
+        if let Err(err) = delete_expired(&configuration.data).await {
             error!(
                 "Failed to run background task for deleting expired files: {}",
                 err
@@ -92,6 +99,7 @@ impl Application {
             error!("Failed to parse '{}' into IpAddr: {}", self.host, err);
             std::process::exit(1);
         });
+
         SocketAddr::from((host, self.port))
     }
 }
@@ -138,42 +146,4 @@ async fn parse_handler() -> String {
     let parsed_log = parser.parse();
 
     format!("{:?}", parsed_log)
-}
-
-async fn delete_expired() -> std::io::Result<()> {
-    const CHECK_PERIOD: Duration = Duration::from_hours(1);
-    const MAX_AGE: Duration = Duration::from_secs(3600 * 24 * 365);
-
-    let mut interval = tokio::time::interval(CHECK_PERIOD);
-
-    interval.tick().await;
-
-    loop {
-        let mut entries = tokio::fs::read_dir(DATA_DIR).await?;
-        let now = SystemTime::now();
-
-        let mut deleted_count: u32 = 0;
-
-        while let Some(entry) = entries.next_entry().await? {
-            let path = entry.path();
-
-            if path.is_file()
-                && let Ok(metadata) = entry.metadata().await
-                && let Ok(modified) = metadata.modified()
-                && let Ok(elapsed) = now.duration_since(modified)
-                && elapsed > MAX_AGE
-            {
-                tokio::fs::remove_file(&path).await?;
-                trace!("Deleted file {}", path.display());
-                deleted_count += 1;
-            }
-        }
-
-        debug!("Deleted {} expired pastes", deleted_count);
-
-        interval.tick().await;
-    }
-
-    #[allow(unreachable_code)]
-    Ok(())
 }

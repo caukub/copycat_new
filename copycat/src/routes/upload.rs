@@ -1,4 +1,10 @@
-use axum::{BoxError, body::Bytes, extract::Multipart, http::StatusCode, response::Redirect};
+use axum::{
+    BoxError,
+    body::Bytes,
+    extract::{Multipart, State},
+    http::StatusCode,
+    response::Redirect,
+};
 use futures_util::{Stream, TryStreamExt};
 use rand::{Rng, distr::Alphanumeric};
 use std::{io, pin::pin};
@@ -7,11 +13,25 @@ use tokio::{
     io::{AsyncReadExt, AsyncWriteExt, BufWriter},
 };
 use tokio_util::io::StreamReader;
-use tracing::trace;
+use tracing::{error, trace};
 
-#[tracing::instrument(skip(multipart))]
-pub async fn upload_handler(mut multipart: Multipart) -> Result<Redirect, (StatusCode, String)> {
+use crate::AppState;
+
+enum PasteType {
+    Log,
+    Yaml,
+    Json,
+    Other,
+}
+
+#[tracing::instrument(skip(multipart, state))]
+pub async fn upload_handler(
+    State(state): State<AppState>,
+    mut multipart: Multipart,
+) -> Result<Redirect, (StatusCode, String)> {
     let id = generate_id();
+
+    let _ = get_paste_type(&state).await;
 
     while let Ok(Some(field)) = multipart.next_field().await {
         if let Some(name) = field.name()
@@ -25,24 +45,26 @@ pub async fn upload_handler(mut multipart: Multipart) -> Result<Redirect, (Statu
     Err((
         StatusCode::BAD_REQUEST,
         "Field 'content' is missing".to_string(),
-    ))    
+    ))
 }
 
-async fn get_paste_type() -> std::io::Result<()> {
-    let mut file = tokio::fs::File::open("path").await?;
-    let mut buffer = Vec::new();
-    file.read_to_end(&mut buffer).await?;
+// check velikosti
+// prvni musi byt json pak yaml
+// mozna se na tohle uplne vykaslat kdyz se pouziva magika
+// tokio spawn? asi ne omezime na 1 MB
+async fn get_paste_type(state: &AppState) -> std::io::Result<()> {
+    #[cfg(feature = "magika")]
+    if let Some(ref magika_mutex) = state.magika {
+        let mut session = magika_mutex
+            .lock()
+            .map_err(|_| std::io::Error::new(std::io::ErrorKind::Other, "Mutex poisoning"))?;
 
-    // check velikosti
-    // prvni musi byt json pak yaml
-    // mozna se na tohle uplne vykaslat kdyz se pouziva magika
-    // tokio spawn? asi ne omezime na 1 MB
-    if serde_json::from_slice::<serde_json::Value>(&buffer).is_ok() {
+        let result = session
+            .identify_content_sync(&b"#!/bin/sh\necho hello"[..])
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
 
-    } else if serde_yaml::from_slice::<serde_yaml::Value>(&buffer).is_ok() {
-
+        error!("{}", result.info().label);
     }
-
     Ok(())
 }
 
