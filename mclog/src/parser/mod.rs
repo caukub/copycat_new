@@ -1,3 +1,9 @@
+use std::collections::HashMap;
+
+use prefix::{LevelSuffixParser, State};
+
+pub mod prefix;
+
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum LogLevel {
     Info,
@@ -12,36 +18,66 @@ pub struct LogEntry<'a> {
     pub prefix: Option<&'a str>,
     pub message: &'a str,
 }
+
 pub struct Parser<'a> {
     lines: &'a [&'a str],
+    pub level_suffix: String,
 }
 
 impl<'a> Parser<'a> {
     pub fn new(lines: &'a [&'a str]) -> Self {
-        Self { lines }
+        const SUFFIX_DETECTOR_LINE_LIMIT: usize = 200;
+
+        let mut parser = LevelSuffixParser::new("INFO");
+
+        let mut vyskyty: HashMap<String, u32> = HashMap::new();
+
+        for line in lines.iter().take(SUFFIX_DETECTOR_LINE_LIMIT) {
+            for ch in line.chars() {
+                parser.next_char(ch);
+                if parser.state == State::End {
+                    break;
+                }
+            }
+
+            if let Some(res) = parser.get_result() {
+                *vyskyty.entry(res).or_insert(0) += 1;
+            }
+
+            parser.reset();
+        }
+
+        let klic_s_maximem = vyskyty.iter().max_by_key(|entry| entry.1);
+
+        let level_suffix = klic_s_maximem.map_or("", |(klic, _hodnota)| klic);
+
+        Self {
+            lines,
+            level_suffix: level_suffix.to_owned(),
+        }
     }
 
     pub fn parse(&self) -> Vec<LogEntry<'a>> {
         let lines = self.lines;
 
         let mut entries = Vec::with_capacity(lines.len());
-        
+
         let mut current_state: Option<LogLevel> = None;
-    
+
         for &line_str in lines {
-            let line = Line(line_str);
-            
+            let line = Line(line_str, self.level_suffix.clone());
+
             if let Some(level) = line.log_level() {
                 current_state = Some(level);
             }
-    
+
             entries.push(LogEntry {
                 log_level: current_state,
                 prefix: line.prefix(),
                 message: line.message(),
             });
         }
-    
+
         entries
     }
 
@@ -53,7 +89,9 @@ impl<'a> Parser<'a> {
         let mut id: usize = 1;
 
         for entry in entries {
-            if entry.prefix.is_none_or(|p| p.is_empty()) && entry.message.is_empty() { continue; }
+            if entry.prefix.is_none_or(|p| p.is_empty()) && entry.message.is_empty() {
+                continue;
+            }
 
             let log_level = match entry.log_level {
                 Some(LogLevel::Info) => "i",
@@ -71,13 +109,15 @@ impl<'a> Parser<'a> {
                     html_escape::encode_text(entry.prefix.unwrap_or_default()),
                     html_escape::encode_text(entry.message),
                 ),
-                Some(LogLevel::Warn) | Some(LogLevel::Error) |  Some(LogLevel::Custom) | None => format!(
-                    r#"<span class="p" id="L{}"><span class="{}">{}{}</span></span>"#,
-                    id,
-                    log_level,
-                    html_escape::encode_text(entry.prefix.unwrap_or_default()),
-                    html_escape::encode_text(entry.message),
-                ),
+                Some(LogLevel::Warn) | Some(LogLevel::Error) | Some(LogLevel::Custom) | None => {
+                    format!(
+                        r#"<span class="p" id="L{}"><span class="{}">{}{}</span></span>"#,
+                        id,
+                        log_level,
+                        html_escape::encode_text(entry.prefix.unwrap_or_default()),
+                        html_escape::encode_text(entry.message),
+                    )
+                }
             };
             html.push(html_part);
             id += 1;
@@ -144,15 +184,19 @@ mod tests {
     }
 }
 
-pub struct Line<'a>(pub &'a str);
+pub struct Line<'a>(pub &'a str, pub String); // (content, level suffix)
 
 impl<'a> Line<'a> {
     fn log_level(&self) -> Option<LogLevel> {
-        if self.0.contains("INFO]") {
+        let info = &format!("INFO{}", self.1);
+        let warn = &format!("WARN{}", self.1);
+        let error = &format!("ERROR{}", self.1);
+
+        if self.0.contains(info) {
             return Some(LogLevel::Info);
-        } else if self.0.contains("WARN]") {
+        } else if self.0.contains(warn) {
             return Some(LogLevel::Warn);
-        } else if self.0.contains("ERROR]") {
+        } else if self.0.contains(error) {
             return Some(LogLevel::Error);
         }
         None
@@ -165,13 +209,16 @@ impl<'a> Line<'a> {
     }
 
     fn prefix(&self) -> Option<&'a str> {
-        let index = self.0.find("INFO]:")? + "INFO]:".len();
+        let prefix = &format!("INFO{}", self.1);
+        let index = self.0.find(prefix)? + prefix.len();
         Some(&self.0[..index])
     }
 
     fn message(&self) -> &'a str {
+        let prefix = &format!("INFO{}", self.1);
+
         self.0
-            .split_once("INFO]:")
+            .split_once(prefix)
             .map(|(_, msg)| msg)
             .unwrap_or(self.0)
     }

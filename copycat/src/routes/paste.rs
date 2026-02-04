@@ -1,10 +1,12 @@
 use askama::Template;
 use axum::{
     extract::{Path, State},
-    response::{IntoResponse, Response},
+    response::{IntoResponse, Redirect, Response},
 };
 
 use crate::{AppState, HtmlTemplate};
+use mclog::parser::Parser;
+use tracing::trace;
 
 #[derive(Template)]
 #[template(path = "paste/log.html")]
@@ -40,6 +42,7 @@ pub enum SolutionFormat {
     Raw,
 }
 
+#[tracing::instrument(skip(state))]
 pub async fn paste_handler(Path(id): Path<String>, State(state): State<AppState>) -> Response {
     let format = SolutionFormat::OrderedList;
     let lines = vec![
@@ -58,13 +61,23 @@ pub async fn paste_handler(Path(id): Path<String>, State(state): State<AppState>
         lines: vec!["V `server.properties` nastavte `level-name`".to_string()],
     };
 
-    let content = tokio::fs::read_to_string(state.configuration.data.directory.join(&id))
-        .await
-        .unwrap();
+    let paste_path = state.configuration.data.directory.join(&id);
+
+    let content = match tokio::fs::read_to_string(&paste_path).await {
+        Ok(content) => content,
+        Err(err) => {
+            trace!(
+                "Failed to read paste '{}' into String: {}",
+                paste_path.display(),
+                err
+            );
+            return Redirect::to("/").into_response();
+        }
+    };
 
     let lines: Vec<&str> = content.lines().collect();
 
-    let parser = mclog::parser::Parser::new(&lines);
+    let parser = Parser::new(&lines);
 
     let html = parser.html();
 
