@@ -60,12 +60,10 @@
             </div>
             
             {# end if #}
-            {% include "slideover_item.html" %}
-            {% include "slideover_item.html" %}
-            {% include "slideover_item.html" %}
-            {% include "slideover_item.html" %}
-            {% include "slideover_item.html" %}
-            {% include "slideover_item.html" %}
+
+            {% for plugin in plugins %}
+              {% include "plugin_item.html" %}
+            {% endfor %}
           </ul>
         </div>
       </el-dialog-panel>

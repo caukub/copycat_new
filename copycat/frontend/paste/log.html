@@ -106,11 +106,12 @@ Paste | {{ id }}
                                 </svg>
                                 {{ detection.header }}
                             </div>
-                            <div
-                                class="mr-1.5 flex items-center rounded-md bg-hostify-blue text-white {% if detection.detail.is_some() %}px-1 py-0.5{% endif %}"
-                            >
+                            
                                 {% if let Some(detail) = detection.detail %}
                                     {% if detail.contains("://") %}
+                                    <a  href="{{ detail }}" target="_blank"
+                                        class="mr-1.5 flex items-center rounded-md bg-hostify-blue text-white {% if detection.detail.is_some() %}px-1 py-0.5{% endif %}"
+                                    >
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
                                             viewBox="0 0 20 20"
@@ -122,10 +123,10 @@ Paste | {{ id }}
                                                 clip-rule="evenodd"
                                             /></svg
                                         >
-                                        <a href="{{ detail }}" target="_blank">Detail</a>
+                                        <p>Detail</p>
+                                    </a>
                                     {% endif %}
                                 {% endif %}
-                            </div>
                         </div>
                     </div>
                     <div class="my-2 flex">

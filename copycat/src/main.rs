@@ -1,11 +1,7 @@
-use std::{
-    collections::HashMap,
-    net::{IpAddr, SocketAddr},
-};
-
 use axum::{
     Router,
     extract::DefaultBodyLimit,
+    http::{HeaderValue, Method},
     routing::{get, post},
 };
 use copycat::{
@@ -15,8 +11,9 @@ use copycat::{
     routes::{index_handler, paste_handler, raw_handler, upload_handler},
     tracing::init_tracing,
 };
+use std::net::{IpAddr, SocketAddr};
 use tokio::signal;
-use tower_http::services::ServeDir;
+use tower_http::{cors::CorsLayer, services::ServeDir};
 use tracing::{debug, error};
 
 #[tokio::main]
@@ -28,23 +25,32 @@ async fn main() {
         std::process::exit(1);
     });
 
-    let data_config = configuration.data.clone();
+    let data_config = configuration.storage.clone();
 
-    std::fs::create_dir_all(data_config.directory.join(".metadata")).unwrap_or_else(|err| {
+    std::fs::create_dir_all(data_config.directory.join("metadata")).unwrap_or_else(|err| {
         error!("Failed to create data directory: {}", err);
         std::process::exit(1);
     });
 
-    #[cfg(feature = "magika")]
-    let magika_session = magika::Session::new()
-        .ok()
-        .map(|s| std::sync::Arc::new(std::sync::Mutex::new(s)));
-
     let app_state = AppState {
         configuration: configuration.clone(),
-        #[cfg(feature = "magika")]
-        magika: magika_session,
     };
+
+    let origin = configuration
+        .cors
+        .allow_origin
+        .parse::<HeaderValue>()
+        .unwrap_or_else(|err| {
+            error!(
+                "Failed to convert origin '{}' into HeaderValue: {}",
+                configuration.cors.allow_origin, err
+            );
+            std::process::exit(1);
+        });
+
+    let cors = CorsLayer::new()
+        .allow_origin(origin)
+        .allow_methods([Method::GET, Method::POST]);
 
     let router = Router::new()
         .route("/", get(index_handler))
@@ -53,7 +59,8 @@ async fn main() {
         .route("/raw/{id}", get(raw_handler))
         .nest_service("/assets", ServeDir::new("./frontend/assets"))
         .with_state(app_state)
-        .layer(DefaultBodyLimit::max(5_000_000));
+        .layer(cors)
+        .layer(DefaultBodyLimit::max(configuration.application.body_limit));
 
     let application = Application {
         host: configuration.application.host,

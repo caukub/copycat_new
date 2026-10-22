@@ -11,7 +11,7 @@ use crate::AppState;
 
 #[tracing::instrument(skip(state))]
 pub async fn raw_handler(Path(id): Path<String>, State(state): State<AppState>) -> Response {
-    let file_path = state.configuration.data.directory.join(&id);
+    let file_path = state.configuration.storage.directory.join(&id);
 
     let file = match tokio::fs::File::open(file_path).await {
         Ok(file) => file,

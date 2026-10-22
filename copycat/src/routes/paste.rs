@@ -3,16 +3,23 @@ use axum::{
     extract::{Path, State},
     response::{IntoResponse, Redirect, Response},
 };
+use mclog::{
+    analyzer::static_analyzer::{
+        StaticAnalyzer,
+        plugin::{Plugin, StaticPluginAnalyzer},
+    },
+    parser::Parser,
+};
 
 use crate::{AppState, HtmlTemplate};
-use mclog::parser::Parser;
 use tracing::trace;
 
 #[derive(Template)]
 #[template(path = "paste/log.html")]
-struct PasteTemplate {
+struct PasteTemplate<'a> {
     id: String,
     data: LogData,
+    plugins: Vec<Plugin<'a>>,
 }
 
 pub struct LogData {
@@ -29,12 +36,13 @@ pub struct Detection {
     pub line: usize,
 }
 
+#[derive(Clone)]
 pub struct Solutions {
     format: SolutionFormat,
     lines: Vec<String>,
 }
 
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub enum SolutionFormat {
     Or,
     OrderedList,
@@ -61,7 +69,9 @@ pub async fn paste_handler(Path(id): Path<String>, State(state): State<AppState>
         lines: vec!["V `server.properties` nastavte `level-name`".to_string()],
     };
 
-    let paste_path = state.configuration.data.directory.join(&id);
+    let solutionsss = solutionss.clone();
+
+    let paste_path = state.configuration.storage.directory.join(&id);
 
     let content = match tokio::fs::read_to_string(&paste_path).await {
         Ok(content) => content,
@@ -77,9 +87,13 @@ pub async fn paste_handler(Path(id): Path<String>, State(state): State<AppState>
 
     let lines: Vec<&str> = content.lines().collect();
 
-    let parser = Parser::new(&lines);
+    let liness = content.lines().map(String::from).collect();
+    let static_analyzer = StaticAnalyzer::new(liness, None);
+    let plugins = static_analyzer.plugins();
+    // TODO sort plugins by name and filter out disabled ones
 
-    let html = parser.html();
+    let parser = Parser::new(&lines, Some(10000), Some(500), Some(15));
+    let html = parser.html_lines();
 
     let bytes: Vec<u8> = html.iter().flat_map(|entry| entry.bytes()).collect();
 
@@ -101,9 +115,16 @@ pub async fn paste_handler(Path(id): Path<String>, State(state): State<AppState>
                     solutions: Some(solutionss),
                     line: 3,
                 },
+                Detection {
+                    header: "Svět má jméno".to_string(),
+                    detail: Some("https://x.com/caukub".to_string()),
+                    solutions: Some(solutionsss),
+                    line: 3,
+                },
             ],
             content: String::from_utf8(bytes).unwrap(),
         },
+        plugins,
     };
 
     HtmlTemplate(template).into_response()

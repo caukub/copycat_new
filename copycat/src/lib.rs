@@ -5,8 +5,6 @@ use axum::{
 };
 use configuration::Settings;
 #[cfg(feature = "magika")]
-use std::sync::{Arc, Mutex};
-
 pub mod configuration;
 pub mod expiration;
 pub mod routes;
@@ -33,6 +31,4 @@ where
 #[derive(Clone)]
 pub struct AppState {
     pub configuration: Settings,
-    #[cfg(feature = "magika")]
-    pub magika: Option<Arc<Mutex<magika::Session>>>,
 }

@@ -6,18 +6,52 @@ use tracing::error;
 #[derive(Deserialize, Clone)]
 pub struct Settings {
     pub application: ApplicationSettings,
-    pub data: DataSettings,
+    pub storage: StorageSettings,
+    pub paste: PasteSettings,
+    pub parser: ParserSettings,
+    pub analyzer: AnalyzerSettings,
+    pub cors: CorsSettings,
+    pub api: ApiSettings,
 }
 
 #[derive(Deserialize, Clone)]
 pub struct ApplicationSettings {
     pub host: String,
     pub port: u16,
+    #[serde(rename = "body_limit_in_bytes")]
+    pub body_limit: usize,
 }
 
 #[derive(Deserialize, Clone)]
-pub struct DataSettings {
+pub struct StorageSettings {
     pub directory: PathBuf,
+    #[serde(rename = "max_size_in_bytes")]
+    pub max_size: usize,
+}
+
+#[derive(Deserialize, Clone)]
+pub struct ParserSettings {
+    pub level_suffix_lines_limit: usize,
+    pub custom_highlighting_delimiters: Vec<String>,
+}
+
+#[derive(Deserialize, Clone)]
+pub struct AnalyzerSettings {
+    pub limits: String,
+}
+
+#[derive(Deserialize, Clone)]
+pub struct CorsSettings {
+    pub allow_origin: String,
+}
+
+#[derive(Deserialize, Clone)]
+pub struct ApiSettings {}
+
+#[derive(Deserialize, Clone)]
+pub struct PasteSettings {
+    pub id_length: usize,
+    pub expiration_in_hours: u32,
 }
 
 pub fn get_configuration() -> Result<Settings, config::ConfigError> {
