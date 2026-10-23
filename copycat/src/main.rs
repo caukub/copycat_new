@@ -11,6 +11,7 @@ use copycat::{
     routes::{index_handler, paste_handler, raw_handler, upload_handler},
     tracing::init_tracing,
 };
+use mclog::analyzer::static_analyzer::{StaticAnalyzer, port::StaticPortAnalyzer};
 use std::net::{IpAddr, SocketAddr};
 use tokio::signal;
 use tower_http::{cors::CorsLayer, services::ServeDir};
@@ -18,6 +19,16 @@ use tracing::{debug, error};
 
 #[tokio::main]
 async fn main() {
+    let lines: Vec<String> = std::fs::read_to_string("./data/testlog")
+        .unwrap()
+        .lines()
+        .map(String::from)
+        .collect();
+
+    let static_analyzer = StaticAnalyzer::new(lines, None);
+
+    println!("server port: {:?}", static_analyzer.server());
+
     init_tracing();
 
     let configuration = get_configuration().unwrap_or_else(|err| {
