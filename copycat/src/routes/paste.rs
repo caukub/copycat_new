@@ -7,9 +7,12 @@ use mclog::{
     analyzer::static_analyzer::{
         StaticAnalyzer,
         plugin::{Plugin, StaticPluginAnalyzer},
+        server::{Platform, StaticServerAnalyzer},
     },
     parser::Parser,
 };
+
+use mclog::analyzer::dynamic::plugin::ahojdaaaaa;
 
 use crate::{AppState, HtmlTemplate};
 use tracing::trace;
@@ -23,8 +26,9 @@ struct PasteTemplate<'a> {
 }
 
 pub struct LogData {
-    pub version: Option<String>,
-    pub platform: String,
+    pub minecraft_version: Option<String>,
+    pub platform: Platform,
+    pub platform_version: Option<String>,
     pub detections: Vec<Detection>,
     pub content: String,
 }
@@ -52,6 +56,8 @@ pub enum SolutionFormat {
 
 #[tracing::instrument(skip(state))]
 pub async fn paste_handler(Path(id): Path<String>, State(state): State<AppState>) -> Response {
+    ahojdaaaaa().unwrap();
+
     let format = SolutionFormat::OrderedList;
     let lines = vec![
         "Vypněte server".to_string(),
@@ -88,8 +94,10 @@ pub async fn paste_handler(Path(id): Path<String>, State(state): State<AppState>
     let lines: Vec<&str> = content.lines().collect();
 
     let liness = content.lines().map(String::from).collect();
-    let static_analyzer = StaticAnalyzer::new(liness, None);
-    let plugins = static_analyzer.plugins();
+    let static_analyzer = StaticAnalyzer::new(liness);
+    let plugins = static_analyzer.plugins(None);
+    let server_info = static_analyzer.version_platform(None);
+    println!("{:?}", server_info);
     // TODO sort plugins by name and filter out disabled ones
 
     let parser = Parser::new(&lines, Some(10000), Some(500), Some(15));
@@ -100,8 +108,9 @@ pub async fn paste_handler(Path(id): Path<String>, State(state): State<AppState>
     let template = PasteTemplate {
         id,
         data: LogData {
-            version: Some("1.20.1".to_string()),
-            platform: "Paper".to_string(),
+            minecraft_version: server_info.minecraft_version,
+            platform: server_info.platform,
+            platform_version: server_info.platform_version,
             detections: vec![
                 Detection {
                     header: "Zjištěn zastaralý plugin".to_string(),
