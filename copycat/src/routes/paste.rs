@@ -12,8 +12,6 @@ use mclog::{
     parser::Parser,
 };
 
-use mclog::analyzer::dynamic::plugin::ahojdaaaaa;
-
 use crate::{AppState, HtmlTemplate};
 use tracing::trace;
 
@@ -56,8 +54,6 @@ pub enum SolutionFormat {
 
 #[tracing::instrument(skip(state))]
 pub async fn paste_handler(Path(id): Path<String>, State(state): State<AppState>) -> Response {
-    ahojdaaaaa().unwrap();
-
     let format = SolutionFormat::OrderedList;
     let lines = vec![
         "Vypněte server".to_string(),
